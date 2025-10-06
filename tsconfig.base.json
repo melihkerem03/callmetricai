@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@ui/*": ["packages/ui/*"],
+      "@db/*": ["packages/db/*"],
+      "@types/*": ["packages/types/*"],
+      "@api-sdk/*": ["packages/api-sdk/*"],
+      "@auth/*": ["packages/auth/*"],
+      "@utils/*": ["packages/utils/*"]
+    }
+  }
+}

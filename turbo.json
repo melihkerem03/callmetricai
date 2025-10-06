@@ -1,0 +1,15 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": ["package.json","pnpm-lock.yaml","tsconfig.base.json"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**","dist/**","build/**","openapi/**"]
+    },
+    "typecheck": { "dependsOn": ["^typecheck"], "outputs": [] },
+    "lint": { "outputs": [] },
+    "test": { "dependsOn": ["^build"], "outputs": ["coverage/**"] },
+    "dev": { "cache": false, "persistent": true },
+    "generate": { "dependsOn": ["^build"], "outputs": ["packages/api-sdk/src/**"] }
+  }
+}
