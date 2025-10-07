@@ -6,9 +6,6 @@ import Footer from "@/components/Footer";
 export const metadata: Metadata = {
   title: "CallMetricAI - Yapay Zeka Ajanları",
   description: "Müşteri deneyimi için yapay zeka ajanları. Ses öncelikli yapay zeka ile doğal konuşmalar ve güvenilir yürütme.",
-  icons: {
-    icon: "/callmetriclogo.png",
-  },
 };
 
 export default function RootLayout({
