@@ -34,7 +34,7 @@ export default function Footer() {
             <ul className="space-y-3 text-sm text-gray-400">
               <li>
                 <Link href="#" className="hover:text-white">
-                  Entegrasyonlar & API'ler
+                  Entegrasyonlar &amp; API&apos;ler
                 </Link>
               </li>
               <li>
