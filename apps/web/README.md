@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CallMetricAI - Marketing Web
 
-## Getting Started
+CallMetricAI'ın ana marketing sitesi. Bu site, ürün bilgileri, fiyatlandırma ve genel bilgileri içerir.
 
-First, run the development server:
+## Geliştirme
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd callmetricai
+pnpm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Web, `http://localhost:3000` adresinde çalışacaktır.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Özellikler
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- ✅ Modern ve responsive tasarım
+- ✅ Hero section
+- ✅ Ürün showcase
+- ✅ Fiyatlandırma
+- ✅ FAQ
+- ✅ Header navigation
+- ✅ Footer
+- ✅ Giriş/Kayıt butonları (app.callmetricai.com'a yönlendirir)
 
-## Learn More
+## Deployment
 
-To learn more about Next.js, take a look at the following resources:
+Production: `https://callmetricai.com`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Vercel üzerinde deploy edilir. Detaylı bilgi için root dizindeki `DEPLOYMENT.md` dosyasına bakın.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Environment Variables
 
-## Deploy on Vercel
+`.env.local` dosyası oluşturun:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:4000
+NEXT_PUBLIC_APP_URL=http://localhost:3001
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Production için Vercel üzerinde ayarlayın:
+
+```bash
+NEXT_PUBLIC_API_URL=https://api.callmetricai.com
+NEXT_PUBLIC_APP_URL=https://app.callmetricai.com
+```

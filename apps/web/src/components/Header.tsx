@@ -68,10 +68,10 @@ export default function Header() {
         {/* Right: CTAs */}
         <div className="flex items-center gap-4">
           <Link
-            href="/demo"
+            href="/login"
             className="hidden rounded-full border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-900 transition-all hover:bg-gray-50 md:inline-flex"
           >
-            Demo Al
+            Giriş Yap
           </Link>
           <Link
             href="/signup"

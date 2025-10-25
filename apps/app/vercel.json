@@ -1,0 +1,14 @@
+{
+  "buildCommand": "cd ../.. && pnpm run build --filter=app",
+  "outputDirectory": ".next",
+  "installCommand": "cd ../.. && pnpm install",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "functions": {
+    "app/**": {
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  }
+}
+
