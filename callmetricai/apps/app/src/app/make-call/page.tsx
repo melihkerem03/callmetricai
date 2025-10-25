@@ -2,6 +2,8 @@
 
 import DashboardLayout from "@/components/DashboardLayout";
 import { useState, useRef } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { callsService } from "@/lib/database";
 
 interface CallerAnalysis {
   sentiment: string;
@@ -44,12 +46,15 @@ interface TranscriptionResult {
 }
 
 export default function MakeCallPage() {
+  const { user, personnel } = useAuth();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<TranscriptionResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [processingTime, setProcessingTime] = useState(0);
   const [processingStage, setProcessingStage] = useState<string>("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedCallId, setSavedCallId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -144,10 +149,52 @@ export default function MakeCallPage() {
     }
   };
 
+  const handleSaveToDatabase = async () => {
+    if (!result || !personnel?.id) {
+      setError('Sonuç veya kullanıcı bilgisi eksik');
+      return;
+    }
+
+    setIsSaving(true);
+    setError(null);
+
+    try {
+      // Görüşme süresini hesapla (en son segment'in end time'ı)
+      const duration = result.raw_segments.length > 0
+        ? result.raw_segments[result.raw_segments.length - 1].end
+        : 0;
+
+      const callData = {
+        gorusme_adi: selectedFile?.name || 'Analiz Edilen Görüşme',
+        gorusme_suresi: Math.round(duration),
+        transkript: result.transcript_with_speakers,
+        dil: result.detected_language,
+        call_analysis: result.call_analysis,
+      };
+
+      console.log('💾 Saving call to database:', callData);
+      const { data, error: saveError } = await callsService.createCall(personnel.id, callData);
+
+      if (saveError) {
+        throw new Error(saveError.message || 'Veritabanına kaydedilemedi');
+      }
+
+      console.log('✅ Call saved successfully:', data);
+      setSavedCallId(data?.id || null);
+      alert('✅ Görüşme başarıyla kaydedildi!');
+    } catch (err: any) {
+      console.error('❌ Save error:', err);
+      setError(err.message || 'Kaydedilirken bir hata oluştu');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleClear = () => {
     setSelectedFile(null);
     setResult(null);
     setError(null);
+    setSavedCallId(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -299,6 +346,55 @@ export default function MakeCallPage() {
       {/* Results Display */}
       {result && (
         <div className="space-y-6">
+          {/* Save to Database Button */}
+          {!savedCallId && personnel && (
+            <div className="bg-gradient-to-r from-green-900/30 to-blue-900/30 border border-green-700 rounded-xl p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-white mb-2">💾 Görüşmeyi Kaydet</h3>
+                  <p className="text-gray-300 text-sm">Analiz sonuçlarını veritabanına kaydedin</p>
+                </div>
+                <button
+                  onClick={handleSaveToDatabase}
+                  disabled={isSaving}
+                  className="px-8 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isSaving ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Kaydediliyor...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                      </svg>
+                      Veritabanına Kaydet
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Saved Confirmation */}
+          {savedCallId && (
+            <div className="bg-green-900/30 border border-green-700 rounded-xl p-6">
+              <div className="flex items-center gap-3">
+                <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <h3 className="text-lg font-bold text-green-400">Görüşme Başarıyla Kaydedildi!</h3>
+                  <p className="text-sm text-gray-300 mt-1">Kaydedilen Görüşme ID: {savedCallId}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Language Detection */}
           <div className="bg-[#1a1d2e] rounded-2xl p-6 border border-gray-800">
             <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
