@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "./Sidebar";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -10,33 +11,25 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
-  const [userEmail, setUserEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, loading, signOut } = useAuth();
 
   useEffect(() => {
-    // Authentication kontrolü
-    const isAuthenticated = localStorage.getItem("isAuthenticated");
-    const email = localStorage.getItem("userEmail");
-
-    if (!isAuthenticated || isAuthenticated !== "true") {
-      // Giriş yapılmamış, login'e yönlendir
+    if (!loading && !user) {
+      // Kullanıcı giriş yapmamış, login'e yönlendir
       router.push("/auth/login");
-    } else {
-      setUserEmail(email || "");
-      setIsLoading(false);
     }
-  }, [router]);
+  }, [user, loading, router]);
 
-  const handleLogout = () => {
-    // Logout - localStorage'ı temizle
-    localStorage.removeItem("isAuthenticated");
-    localStorage.removeItem("userEmail");
-    
-    // Login sayfasına yönlendir
-    router.push("/auth/login");
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      router.push("/auth/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0f1117]">
         <div className="text-center">
@@ -77,7 +70,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* User Info & Logout */}
           <div className="flex items-center gap-4 ml-8">
             <div className="text-right">
-              <p className="text-sm text-gray-400">{userEmail}</p>
+              <p className="text-sm text-gray-400">{user?.email}</p>
             </div>
             <button
               onClick={handleLogout}

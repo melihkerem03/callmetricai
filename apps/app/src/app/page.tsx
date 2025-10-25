@@ -2,22 +2,23 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Home() {
   const router = useRouter();
+  const { user, loading } = useAuth();
   
   useEffect(() => {
-    // Authentication kontrolü yap
-    const isAuthenticated = localStorage.getItem("isAuthenticated");
-    
-    if (isAuthenticated === "true") {
-      // Giriş yapılmışsa dashboard'a yönlendir
-      router.push("/dashboard");
-    } else {
-      // Giriş yapılmamışsa login'e yönlendir
-      router.push("/auth/login");
+    if (!loading) {
+      if (user) {
+        // Giriş yapılmışsa dashboard'a yönlendir
+        router.push("/dashboard");
+      } else {
+        // Giriş yapılmamışsa login'e yönlendir
+        router.push("/auth/login");
+      }
     }
-  }, [router]);
+  }, [user, loading, router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">

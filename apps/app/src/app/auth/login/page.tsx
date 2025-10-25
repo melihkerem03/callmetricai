@@ -3,30 +3,35 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
+  const { signIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
     
-    // Basit authentication kontrolü
-    if (email === "admin@mail.com" && password === "0") {
-      // Başarılı giriş - localStorage'a token kaydet
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("userEmail", email);
+    try {
+      const { data, error } = await signIn(email, password);
       
-      // Dashboard'a yönlendir
-      setTimeout(() => {
-        window.location.href = "/dashboard";
-      }, 500);
-    } else {
-      // Hatalı giriş
+      if (error) {
+        setError(error.message);
+        setIsLoading(false);
+      } else {
+        // Başarılı giriş - dashboard'a yönlendir
+        router.push("/dashboard");
+      }
+    } catch (err) {
+      setError("Bir hata oluştu. Lütfen tekrar deneyin.");
       setIsLoading(false);
-      alert("Hatalı e-posta veya şifre!\n\nDoğru bilgiler:\nE-posta: admin@mail.com\nŞifre: 0");
     }
   };
 
@@ -54,6 +59,13 @@ export default function LoginPage() {
           Hesabınıza erişim sağlayın
         </p>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-600 text-sm">{error}</p>
+        </div>
+      )}
 
       
 

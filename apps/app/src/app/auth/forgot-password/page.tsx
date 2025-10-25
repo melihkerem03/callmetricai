@@ -3,24 +3,34 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState("");
+  const { resetPassword } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
     
-    // TODO: API entegrasyonu yapılacak
-    console.log("Password reset request:", { email });
-    
-    // Simulated delay
-    setTimeout(() => {
+    try {
+      const { data, error } = await resetPassword(email);
+      
+      if (error) {
+        setError(error.message);
+        setIsLoading(false);
+      } else {
+        setIsSuccess(true);
+        setIsLoading(false);
+      }
+    } catch (err) {
+      setError("Bir hata oluştu. Lütfen tekrar deneyin.");
       setIsLoading(false);
-      setIsSuccess(true);
-    }, 1000);
+    }
   };
 
   if (isSuccess) {
@@ -115,6 +125,13 @@ export default function ForgotPasswordPage() {
           E-posta adresinizi girin, size şifre sıfırlama bağlantısı gönderelim.
         </p>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-600 text-sm">{error}</p>
+        </div>
+      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-6">

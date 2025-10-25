@@ -3,36 +3,71 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
+    department: "musteri_hizmetleri" as "satis" | "teknik" | "musteri_hizmetleri",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const router = useRouter();
+  const { signUp } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
     
     if (formData.password !== formData.confirmPassword) {
-      alert("Şifreler eşleşmiyor!");
+      setError("Şifreler eşleşmiyor!");
+      return;
+    }
+    
+    if (formData.password.length < 6) {
+      setError("Şifre en az 6 karakter olmalıdır!");
       return;
     }
     
     setIsLoading(true);
     
-    // TODO: API entegrasyonu yapılacak
-    console.log("Signup attempt:", formData);
-    
-    // Simulated delay
-    setTimeout(() => {
+    try {
+      const { data, error } = await signUp(formData.email, formData.password, {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        department: formData.department
+      });
+      
+      if (error) {
+        setError(error.message);
+        setIsLoading(false);
+      } else {
+        setSuccess("Hesabınız başarıyla oluşturuldu! E-posta adresinizi kontrol ederek hesabınızı onaylayın.");
+        setIsLoading(false);
+        // Form'u temizle
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+          department: "musteri_hizmetleri",
+        });
+      }
+    } catch (err) {
+      setError("Bir hata oluştu. Lütfen tekrar deneyin.");
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -64,22 +99,53 @@ export default function SignupPage() {
         </p>
       </div>
 
+      {/* Error Message */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-600 text-sm">{error}</p>
+        </div>
+      )}
+
+      {/* Success Message */}
+      {success && (
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <p className="text-green-600 text-sm">{success}</p>
+        </div>
+      )}
+
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Name */}
+        {/* First Name */}
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-            Ad Soyad
+          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+            Ad
           </label>
           <input
-            id="name"
-            name="name"
+            id="firstName"
+            name="firstName"
             type="text"
-            value={formData.name}
+            value={formData.firstName}
             onChange={handleChange}
             required
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none"
-            placeholder="Adınız Soyadınız"
+            placeholder="Adınız"
+          />
+        </div>
+
+        {/* Last Name */}
+        <div>
+          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+            Soyad
+          </label>
+          <input
+            id="lastName"
+            name="lastName"
+            type="text"
+            value={formData.lastName}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none"
+            placeholder="Soyadınız"
           />
         </div>
 
@@ -117,21 +183,23 @@ export default function SignupPage() {
           />
         </div>
 
-        {/* Confirm Password */}
+        {/* Department */}
         <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-            Şifre Tekrar
+          <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-2">
+            Departman
           </label>
-          <input
-            id="confirmPassword"
-            name="confirmPassword"
-            type="password"
-            value={formData.confirmPassword}
+          <select
+            id="department"
+            name="department"
+            value={formData.department}
             onChange={handleChange}
             required
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none"
-            placeholder="••••••••"
-          />
+          >
+            <option value="musteri_hizmetleri">Müşteri Hizmetleri</option>
+            <option value="satis">Satış Temsilcisi</option>
+            <option value="teknik">Teknik Personel</option>
+          </select>
         </div>
 
         {/* Terms */}
