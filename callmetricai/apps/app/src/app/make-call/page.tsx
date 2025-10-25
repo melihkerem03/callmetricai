@@ -205,6 +205,25 @@ export default function MakeCallPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">Ses Analizi</h1>
         <p className="text-gray-400">Ses dosyası yükleyin ve konuşmacılara göre analiz edin</p>
+        
+        {/* User Info */}
+        {personnel && (
+          <div className="mt-3 flex items-center gap-2 text-sm text-gray-300">
+            <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span>Giriş yapıldı: <strong>{personnel.ad} {personnel.soyad}</strong></span>
+          </div>
+        )}
+        
+        {/* No Personnel Warning */}
+        {user && !personnel && (
+          <div className="mt-4 bg-yellow-900/30 border border-yellow-700 rounded-lg p-4">
+            <p className="text-yellow-300 text-sm">
+              ⚠️ Personel bilginiz yüklenemiyor. Görüşmeleri kaydedebilmek için lütfen yöneticinizle iletişime geçin.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Upload Section */}

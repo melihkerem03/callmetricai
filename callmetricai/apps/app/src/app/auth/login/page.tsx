@@ -1,32 +1,58 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
+    setInfo(null);
     
-    // Basit authentication kontrolü
-    if (email === "admin@mail.com" && password === "0") {
-      // Başarılı giriş - localStorage'a token kaydet
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("userEmail", email);
+    try {
+      const { data, error: signInError } = await signIn(email, password);
       
-      // Dashboard'a yönlendir
-      setTimeout(() => {
-        window.location.href = "/dashboard";
-      }, 500);
-    } else {
-      // Hatalı giriş
+      if (signInError) {
+        if (signInError.message.includes('Email not confirmed')) {
+          setInfo('⚠️ Lütfen e-posta adresinizi doğrulayın. Gelen kutunuzu kontrol edin.');
+        } else if (signInError.message.includes('Invalid login credentials')) {
+          setError('❌ E-posta veya şifre hatalı!');
+        } else {
+          setError(`❌ Giriş hatası: ${signInError.message}`);
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      if (data?.user) {
+        // Check if email is confirmed
+        if (!data.user.email_confirmed_at) {
+          setInfo('⚠️ E-posta adresiniz henüz doğrulanmamış. Lütfen gelen kutunuzu kontrol edin.');
+          setIsLoading(false);
+          return;
+        }
+
+        // Successful login - redirect
+        const redirect = searchParams.get('redirect') || '/dashboard';
+        router.push(redirect);
+      }
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError('❌ Bir hata oluştu. Lütfen tekrar deneyin.');
       setIsLoading(false);
-      alert("Hatalı e-posta veya şifre!\n\nDoğru bilgiler:\nE-posta: admin@mail.com\nŞifre: 0");
     }
   };
 
@@ -55,7 +81,19 @@ export default function LoginPage() {
         </p>
       </div>
 
-      
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+          <p className="text-sm">{error}</p>
+        </div>
+      )}
+
+      {/* Info Message */}
+      {info && (
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg mb-6">
+          <p className="text-sm">{info}</p>
+        </div>
+      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-6">

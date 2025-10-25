@@ -1,10 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function SignupPage() {
+  const router = useRouter();
+  const { signUp } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -12,24 +16,57 @@ export default function SignupPage() {
     confirmPassword: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    
+    // Password validation
+    if (formData.password.length < 6) {
+      setError("Şifre en az 6 karakter olmalıdır!");
+      return;
+    }
     
     if (formData.password !== formData.confirmPassword) {
-      alert("Şifreler eşleşmiyor!");
+      setError("Şifreler eşleşmiyor!");
       return;
     }
     
     setIsLoading(true);
     
-    // TODO: API entegrasyonu yapılacak
-    console.log("Signup attempt:", formData);
-    
-    // Simulated delay
-    setTimeout(() => {
+    try {
+      const { data, error: signUpError } = await signUp(
+        formData.email, 
+        formData.password, 
+        formData.name
+      );
+      
+      if (signUpError) {
+        if (signUpError.message.includes('already registered')) {
+          setError('❌ Bu e-posta adresi zaten kayıtlı!');
+        } else {
+          setError(`❌ Kayıt hatası: ${signUpError.message}`);
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      if (data?.user) {
+        // Success - show confirmation message
+        setSuccess(true);
+        
+        // Redirect to login after 3 seconds
+        setTimeout(() => {
+          router.push('/auth/login');
+        }, 3000);
+      }
+    } catch (err: any) {
+      console.error('Signup error:', err);
+      setError('❌ Bir hata oluştu. Lütfen tekrar deneyin.');
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,8 +101,37 @@ export default function SignupPage() {
         </p>
       </div>
 
+      {/* Success Message */}
+      {success && (
+        <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-4 rounded-lg mb-6">
+          <div className="flex items-start gap-3">
+            <svg className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="font-semibold mb-1">✅ Kayıt Başarılı!</p>
+              <p className="text-sm">
+                E-posta adresinize bir doğrulama linki gönderdik. 
+                Lütfen gelen kutunuzu kontrol edin ve e-postanızı doğrulayın.
+              </p>
+              <p className="text-xs mt-2 text-green-700">
+                Giriş sayfasına yönlendiriliyorsunuz...
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+          <p className="text-sm">{error}</p>
+        </div>
+      )}
+
       {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-5">
+      {!success && (
+        <form onSubmit={handleSubmit} className="space-y-5">
         {/* Name */}
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
@@ -163,6 +229,7 @@ export default function SignupPage() {
           {isLoading ? "Hesap oluşturuluyor..." : "Hesap Oluştur"}
         </button>
       </form>
+      )}
 
       {/* Divider */}
       <div className="relative my-6">
