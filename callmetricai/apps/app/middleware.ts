@@ -9,9 +9,9 @@ export async function middleware(request: NextRequest) {
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
 
   // Check if user has session cookie (Supabase sets this)
-  const hasSession = request.cookies.has('sb-wnibwuhkstiluddlkwlv-auth-token') || 
-                     request.cookies.has('sb-wnibwuhkstiluddlkwlv-auth-token.0') ||
-                     request.cookies.has('sb-wnibwuhkstiluddlkwlv-auth-token.1');
+  const hasSession = request.cookies.has('sb-igboerxkjwvyysowwwfx-auth-token') || 
+                     request.cookies.has('sb-igboerxkjwvyysowwwfx-auth-token.0') ||
+                     request.cookies.has('sb-igboerxkjwvyysowwwfx-auth-token.1');
 
   // Redirect to login if trying to access protected route without session
   if (!isPublicRoute && !hasSession) {
