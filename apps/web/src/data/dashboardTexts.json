@@ -1,0 +1,66 @@
+{
+  "manager": {
+    "title": "Yönetici Dashboard - Üst Panel",
+    "metrics": [
+      {
+        "label": "Günlük Çağrı Hacmi",
+        "value": "Bugün 1,240",
+        "secondary": "Ortalama AHT: 4m 12s"
+      },
+      {
+        "label": "Kritik Uyarılar",
+        "value": "3 yüksek stresli çağrı tespit edildi",
+        "action": "acil koçluk önerisi atandı"
+      },
+      {
+        "label": "Performans Trendleri",
+        "value": "Son 7 günde temsilci ort. skor +6.4 puan"
+      },
+      {
+        "label": "Satış Dönüşümü",
+        "value": "Konuşma içindeki satış anı tespiti",
+        "secondary": "%12 dönüşüm artışı potansiyeli"
+      }
+    ]
+  },
+  "agent": {
+    "title": "Temsilci Ekranı — Anlık Yardım",
+    "suggestions": [
+      "Müşteri beklemeye alındı; doğrudan çözüm adımlarına geçiniz.",
+      "Satış fırsatı: Müşteri fiyat esnekliği gösteriyor. Upsell script önerisi sunuluyor.",
+      "Duygu uyarısı: Müşteride artan öfke tespit edildi. Sakinleştirici konuşma şablonunu kullanınız.",
+      "Empati puanı yüksek: Müşteri memnun. Kapanış için ideal an."
+    ]
+  },
+  "callDetail": {
+    "title": "Çağrı Detay Raporu",
+    "score": {
+      "overall": 78,
+      "empathy": 82,
+      "solution": 70,
+      "procedure": 95
+    },
+    "emotionMap": "Başlangıç (nötr) → 00:45 artan öfke → 02:30 ikna/çözüm sonrası memnuniyet",
+    "recommendations": [
+      "Daha kısa bekletme",
+      "Daha net kapanış cümlesi",
+      "Follow-up SMS öner"
+    ]
+  },
+  "ui": {
+    "buttons": [
+      "Canlı Demoya Katıl",
+      "İletişime Geç",
+      "Erken Erişim Talep Et"
+    ],
+    "tooltips": {
+      "emotionMap": "Çağrı boyunca tespit edilen duygu seviyesinin zaman içindeki görünümü."
+    },
+    "alerts": {
+      "manager": "Acil: 2 saat içinde %20+ performans düşüşü — koçluk atayın.",
+      "agent": "Kısa öneri: Bilgi anlaşılmadı - Müşteriye çözüm adımlarını maddeler halinde tekrar edin."
+    }
+  }
+}
+
+
