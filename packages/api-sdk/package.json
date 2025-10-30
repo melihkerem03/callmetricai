@@ -4,7 +4,7 @@
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
-    "generate": "swagger-typescript-api -p ./openapi.json -o ./src --modular --axios=false --silent",
+    "generate": "swagger-typescript-api -p ./openapi.json -o ./src --modular --silent",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
