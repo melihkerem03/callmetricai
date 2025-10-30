@@ -1,0 +1,15 @@
+{
+  "name": "@api-sdk/client",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "generate": "swagger-typescript-api -p ./openapi.json -o ./src --modular --axios=false --silent",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "swagger-typescript-api": "^12.0.0",
+    "ky": "^1.7.2"
+  }
+}

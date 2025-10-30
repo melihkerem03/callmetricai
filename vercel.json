@@ -1,0 +1,8 @@
+{
+  "buildCommand": "cd callmetricai && pnpm install && turbo run build --filter=app",
+  "outputDirectory": "callmetricai/apps/app/.next",
+  "installCommand": "cd callmetricai && pnpm install",
+  "framework": "nextjs",
+  "regions": ["iad1"]
+}
+
