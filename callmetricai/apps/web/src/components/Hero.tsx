@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Hero() {
   return (
     <section className="relative overflow-hidden bg-white py-40">
@@ -5,25 +7,27 @@ export default function Hero() {
         {/* Hero Content */}
         <div className="text-center">
           <p className="mb-6 text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
-            MÜŞTERİ DENEYİMİ İÇİN YAPAY ZEKA AJANLAR
+            İnsanla yapay zekânın birlikte evrildiği çağrı merkezi deneyimi
           </p>
-          <h1 className="mx-auto mb-6 max-w-4xl text-5xl font-normal leading-tight text-gray-900 md:text-6xl lg:text-7xl">
-            <span className="font-serif italic">Daha iyi müşteri</span>
-            <br />
-            <span className="font-serif italic">deneyimleri</span> için yapay zeka ajanları
+          <h1 className="mx-auto mb-6 max-w-5xl text-4xl font-normal leading-tight text-gray-900 md:text-5xl lg:text-6xl">
+            İnsan Zekâsı ile Agentic AI&apos;nın Dönüştürücü Gücü
           </h1>
-          <p className="mx-auto mb-10 max-w-2xl text-base leading-relaxed text-gray-600 md:text-lg">
-            Ses öncelikli yapay zeka ajanları. Müşterileriniz için doğal, insansı konuşmalar.
-            <br />
-            İşiniz için öngörülebilir yürütme.
+          <p className="mx-auto mb-6 max-w-3xl text-base leading-relaxed text-gray-600 md:text-lg">
+            Ses, metin ve duyguyla analiz eden Multimodal Agentic AI platformu. Operasyonel maliyetleri %30 azaltırken, gerçek zamanlı analizler ve akıllı önerilerle temsilciyi destekler, yöneticilere karar gücü kazandırır.
           </p>
-          <div className="flex justify-center">
-            <a
-              href="#get-started"
-              className="inline-flex items-center justify-center rounded-lg bg-purple-600 px-8 py-4 text-sm font-semibold text-white shadow-lg transition-all hover:bg-purple-700 hover:shadow-xl"
+          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Link
+              href="/contact"
+              className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-cyan-500 to-orange-500 px-8 py-4 text-sm font-semibold text-white shadow-lg transition-all hover:from-cyan-600 hover:to-orange-600 hover:shadow-xl"
             >
-              Başlayın
-            </a>
+              İletişime Geç
+            </Link>
+            <Link
+              href="/contact"
+              className="inline-flex items-center justify-center rounded-lg border-2 border-cyan-500 bg-white px-8 py-4 text-sm font-semibold text-cyan-600 transition-all hover:bg-cyan-50"
+            >
+              Erken Erişim
+            </Link>
           </div>
         </div>
 

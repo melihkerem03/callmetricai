@@ -24,15 +24,15 @@ export const personnelService = {
     return { data, error }
   },
 
-  // Update personnel info
-  updatePersonnel: async (userId: string, personnelData: any) => {
+  // Update personnel info (by personnel UUID, not user_id)
+  updatePersonnel: async (personnelId: string, personnelData: any) => {
     const { data, error } = await supabase
       .from('kullanici')
       .update({
         ...personnelData,
         guncelleme_tarihi: new Date().toISOString()
       })
-      .eq('user_id', userId)
+      .eq('id', personnelId)
       .select()
       .single()
     

@@ -7,10 +7,19 @@ import { useEffect, useState } from "react";
 const navItems = [
   { label: "Hakkımızda", href: "/company", hasDropdown: false },
   { label: "Ürünler", href: "/products", hasDropdown: false },
-  { label: "Çözümlerimiz", href: "/solutions", hasDropdown: false },
-  { label: "Fiyatlandırma", href: "/pricing", hasDropdown: false },
+  { label: "İletişim", href: "/contact", hasDropdown: false },
   { label: "FAQs", href: "/faqs", hasDropdown: false },
 ];
+
+const pageTitles: Record<string, string> = {
+  "/": "CallMetric AI | İnsan Zekâsı ile Agentic AI'nın Dönüştürücü Gücü",
+  "/company": "Hakkımızda | CallMetric AI",
+  "/products": "Ürünler | CallMetric AI",
+  "/contact": "İletişim | CallMetric AI",
+  "/faqs": "FAQs | CallMetric AI",
+  "/login": "Giriş Yap | CallMetric AI",
+  "/signup": "Kayıt Ol | CallMetric AI",
+};
 
 export default function Header() {
   const pathname = usePathname();
@@ -23,6 +32,11 @@ export default function Header() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    const title = pageTitles[pathname] || "CallMetric AI";
+    document.title = title;
+  }, [pathname]);
 
   return (
     <header 
@@ -37,7 +51,7 @@ export default function Header() {
           <img
             src="/callmetriclogo.png"
             alt="CallMetricAI"
-            className="h-48 w-auto object-contain"
+            className="h-32 w-auto object-contain"
           />
         </Link>
 
@@ -51,7 +65,7 @@ export default function Header() {
                 href={item.href}
                 className={[
                   "flex items-center gap-1 rounded-full px-5 py-2.5 text-sm font-medium transition-colors",
-                  active ? "text-purple-700" : "text-gray-700 hover:text-gray-900",
+                  active ? "text-cyan-600" : "text-gray-700 hover:text-gray-900",
                 ].join(" ")}
               >
                 {item.label}
@@ -75,7 +89,7 @@ export default function Header() {
           </Link>
           <Link
             href="/signup"
-            className="rounded-full bg-gradient-to-r from-purple-600 to-purple-500 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:shadow-xl"
+            className="rounded-full bg-gradient-to-r from-cyan-500 to-orange-500 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:from-cyan-600 hover:to-orange-600 hover:shadow-xl"
           >
             Kayıt Ol
           </Link>

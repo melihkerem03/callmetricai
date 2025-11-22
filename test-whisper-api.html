@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whisper API Test - CallMetric AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 50px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+            background: #f8f9ff;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8ebff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-info {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #d0d0d0;
+        }
+
+        .processing {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .processing.show {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #ffc107;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .result {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result h3 {
+            color: #155724;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-text {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .result-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 0.9em;
+            color: #155724;
+        }
+
+        .result-meta span {
+            background: rgba(40, 167, 69, 0.1);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+            color: #721c24;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .error h3 {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .info-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .info-box li {
+            padding: 5px 0;
+            color: #555;
+        }
+
+        .info-box li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .api-endpoint {
+            background: #f8f9ff;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.9em;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Whisper API Test</h1>
+        <div class="badge">Whisper Large V3 + Dynamic Batching 🚀</div>
+        <p class="subtitle">Modal API endpoint'ini test edin - Authentication yok!</p>
+
+        <div class="info-box">
+            <h3>⚡ Özellikler</h3>
+            <ul>
+                <li>Whisper Large V3 modeli</li>
+                <li>Dynamic batching (2.8x performans)</li>
+                <li>A10G GPU</li>
+                <li>Türkçe dil desteği</li>
+                <li>Timestamp desteği</li>
+            </ul>
+            <div class="api-endpoint">
+                🌐 API: https://melihkerem03--callmetric-ai-api-batched-whispermodel-fastapi-app.modal.run/transcribe
+            </div>
+        </div>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <h3>Ses Dosyası Seçin</h3>
+            <p>Tıklayın veya sürükle-bırak yapın</p>
+            <p style="color: #999; font-size: 0.9em; margin-top: 10px;">MP3, WAV, OGG, WebM, M4A</p>
+            <input type="file" id="fileInput" class="file-input" accept="audio/*,.mp3,.wav,.ogg,.webm,.m4a">
+        </div>
+
+        <div class="file-info" id="fileInfo">
+            <strong>📄 Seçilen dosya:</strong>
+            <div id="fileName" style="margin-top: 5px; color: #667eea;"></div>
+            <div id="fileSize" style="margin-top: 5px; color: #666;"></div>
+        </div>
+
+        <div class="buttons">
+            <button class="btn-primary" id="uploadBtn" disabled>
+                🚀 Metne Çevir
+            </button>
+            <button class="btn-secondary" id="clearBtn">
+                🗑️ Temizle
+            </button>
+        </div>
+
+        <div class="processing" id="processing">
+            <div class="spinner"></div>
+            <span id="processingText">API'ye bağlanılıyor...</span>
+            <div style="margin-top: 10px; color: #856404;">
+                ⏱️ Geçen süre: <strong id="timer">0</strong> saniye
+            </div>
+            <div style="margin-top: 5px; font-size: 0.9em; color: #856404;">
+                💡 İlk çalıştırmada cold start nedeniyle 20-40 saniye sürebilir
+            </div>
+        </div>
+
+        <div class="error" id="error">
+            <h3>❌ Hata</h3>
+            <div id="errorMessage"></div>
+        </div>
+
+        <div class="result" id="result">
+            <h3>✅ Transkripsiyon Sonucu</h3>
+            <div class="result-meta" id="resultMeta"></div>
+            <div class="result-text" id="resultText"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://melihkerem03--callmetric-ai-api-batched-whispermodel-fastapi-app.modal.run/transcribe';
+        
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const processing = document.getElementById('processing');
+        const processingText = document.getElementById('processingText');
+        const timer = document.getElementById('timer');
+        const error = document.getElementById('error');
+        const errorMessage = document.getElementById('errorMessage');
+        const result = document.getElementById('result');
+        const resultText = document.getElementById('resultText');
+        const resultMeta = document.getElementById('resultMeta');
+
+        let selectedFile = null;
+        let timerInterval = null;
+        let startTime = 0;
+
+        // Upload area click
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        // Handle file selection
+        function handleFileSelect(file) {
+            const validTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/webm', 'audio/m4a', 'audio/x-m4a'];
+            const validExtensions = /\.(mp3|wav|ogg|webm|m4a)$/i;
+            
+            if (!validTypes.includes(file.type) && !validExtensions.test(file.name)) {
+                showError('Lütfen geçerli bir ses dosyası seçin (MP3, WAV, OGG, WebM, M4A)');
+                return;
+            }
+
+            selectedFile = file;
+            fileName.textContent = file.name;
+            fileSize.textContent = `Boyut: ${(file.size / 1024 / 1024).toFixed(2)} MB`;
+            fileInfo.classList.add('show');
+            uploadBtn.disabled = false;
+            hideError();
+            hideResult();
+        }
+
+        // Upload button click
+        uploadBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+
+            hideError();
+            hideResult();
+            showProcessing();
+
+            const formData = new FormData();
+            formData.append('audio_file', selectedFile);
+            formData.append('language', 'tr');
+
+            console.log('📤 Ses dosyası gönderiliyor:', selectedFile.name);
+            console.log('📊 Dosya boyutu:', (selectedFile.size / 1024 / 1024).toFixed(2), 'MB');
+            console.log('🌐 API URL:', API_URL);
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                console.log('📥 Response status:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ API Error:', errorText);
+                    throw new Error(`API Hatası: ${response.status} - ${errorText}`);
+                }
+
+                const data = await response.json();
+                console.log('✅ API Response:', data);
+
+                showResult(data);
+            } catch (err) {
+                console.error('💥 Hata detayı:', err);
+                showError(err.message || 'Ses dosyası işlenirken bir hata oluştu');
+            } finally {
+                hideProcessing();
+            }
+        });
+
+        // Clear button click
+        clearBtn.addEventListener('click', () => {
+            selectedFile = null;
+            fileInput.value = '';
+            fileInfo.classList.remove('show');
+            uploadBtn.disabled = true;
+            hideError();
+            hideResult();
+            hideProcessing();
+        });
+
+        // Show processing
+        function showProcessing() {
+            processing.classList.add('show');
+            uploadBtn.disabled = true;
+            startTime = Date.now();
+            
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                timer.textContent = elapsed;
+            }, 1000);
+
+            let stage = 0;
+            const stages = [
+                "API'ye bağlanılıyor...",
+                "Whisper Large V3 modeli ile işleniyor...",
+                "Transkripsiyon yapılıyor...",
+                "Sonuçlar hazırlanıyor..."
+            ];
+
+            const stageInterval = setInterval(() => {
+                stage = (stage + 1) % stages.length;
+                processingText.textContent = stages[stage];
+            }, 3000);
+
+            // Store interval ID for cleanup
+            processing.dataset.stageInterval = stageInterval;
+        }
+
+        // Hide processing
+        function hideProcessing() {
+            processing.classList.remove('show');
+            uploadBtn.disabled = false;
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            if (processing.dataset.stageInterval) {
+                clearInterval(parseInt(processing.dataset.stageInterval));
+                delete processing.dataset.stageInterval;
+            }
+        }
+
+        // Show error
+        function showError(message) {
+            error.classList.add('show');
+            errorMessage.textContent = message;
+        }
+
+        // Hide error
+        function hideError() {
+            error.classList.remove('show');
+        }
+
+        // Show result
+        function showResult(data) {
+            result.classList.add('show');
+            resultText.textContent = data.text || 'Transkripsiyon metni bulunamadı';
+            
+            let metaHtml = '';
+            if (data.processing_time_seconds) {
+                metaHtml += `<span>⏱️ İşlem süresi: ${data.processing_time_seconds.toFixed(2)}s</span>`;
+            }
+            if (data.filename) {
+                metaHtml += `<span>📄 Dosya: ${data.filename}</span>`;
+            }
+            if (data.language) {
+                metaHtml += `<span>🌍 Dil: ${data.language}</span>`;
+            }
+            if (data.chunks && data.chunks.length > 0) {
+                metaHtml += `<span>📊 Segmentler: ${data.chunks.length}</span>`;
+            }
+            
+            resultMeta.innerHTML = metaHtml;
+
+            // Log chunks if available
+            if (data.chunks && data.chunks.length > 0) {
+                console.log('📋 Detaylı segmentler:', data.chunks);
+            }
+        }
+
+        // Hide result
+        function hideResult() {
+            result.classList.remove('show');
+        }
+    </script>
+</body>
+</html>
+

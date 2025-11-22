@@ -5,29 +5,62 @@ import { useState } from "react";
 const features = [
   {
     id: 1,
-    title: "Gerçek dünya konuşma işleme",
-    description: "Üst üste konuşma, kesintiler ve arka plan gürültüsünü ele alarak Yapay Zeka Ajanlarının müşterileri doğru anlamasını sağlayın",
+    title: "Gerçek Zamanlı Koçluk (Agent Assist)",
+    description: "Canlı çağrı sırasında anlık öneriler (konuşma hızı, empati ipuçları, sorun çözme yönlendirmesi). Satış anı algılama: sistem 'satış anı' tespitinde ödeme bilgisi talebi veya upsell önerileri sunar. Teknik destek çağrılarında adım adım çözüm akışı önerileri.",
+    image: "/call1.jpg",
     visual: {
       type: "waveform",
-      content: "Gürültü filtreleme ile gerçek dünya konuşma analizi"
+      content: "Gerçek zamanlı koçluk ve öneriler"
     }
   },
   {
     id: 2,
-    title: "Yüksek hassasiyetli varlık çıkarımı",
-    description: "Müşteri görüşmelerinden isimler, tarihler, numaralar ve niyetler gibi temel bilgileri yüksek doğrulukla çıkarın",
+    title: "Multimodal Performans Skorlama",
+    description: "SER (Speech Emotion Recognition) ile konuşma tonu, stres ve memnuniyet ölçümü. NLP ile prosedür uyumu, anahtar kelime kontrolü, empati ve bilgilendirme doğruluğu analizi. Bu iki kaynaktan gelen skorların harmonize edilmesiyle güvenilir skor kartlar.",
+    image: "/call2.webp",
     visual: {
       type: "entities",
-      content: "Varlık tanıma ve çıkarımı"
+      content: "Multimodal analiz ve skorlama"
     }
   },
   {
     id: 3,
-    title: "Karmaşık çok turlu konuşmalar",
-    description: "Karmaşık, çok turlu konuşmalarda bile arayan kişinin niyetini doğru bir şekilde belirleyin",
+    title: "Duygu Haritası & İş Haritası Görselleştirmesi",
+    description: "Çağrının duygusal seyri: anlık duygu değişimleri zaman serisi şeklinde. İş haritası: konuşmanın hangi aşamalarında (karşılama, doğrulama, çözüm, kapanış) ne kadar etkili olunduğu gösterilir.",
+    image: "/call3.webp",
     visual: {
       type: "conversation",
-      content: "Çok turlu konuşma akışı"
+      content: "Duygu ve iş haritası görselleştirmesi"
+    }
+  },
+  {
+    id: 4,
+    title: "Anlık KPI ve Yöneticinin Güç Paneli",
+    description: "Gerçek zamanlı temsilci performansı, bekleyen çağrı dağılımı, FCR, AHT, NPS benzeri metrikler. Yönetici için uyarılar: kritik düşüş, yüksek stresli hatlar, eğitim gerektiren temsilciler.",
+    image: "/call4.webp",
+    visual: {
+      type: "dashboard",
+      content: "Yönetici dashboard ve KPI'lar"
+    }
+  },
+  {
+    id: 5,
+    title: "Kişiselleştirilmiş Koçluk & Eğitim Önerileri",
+    description: "Her temsilci için zayıf alan analizi ve kısa eğitim/snippet önerileri. Otomatik atama: koçluk ihtiyacı tespit edilen temsilciler için eğitim görevleri oluşturulur.",
+    image: "/call1.jpg",
+    visual: {
+      type: "coaching",
+      content: "Kişiselleştirilmiş koçluk planları"
+    }
+  },
+  {
+    id: 6,
+    title: "Uyumluluk & Güvenlik",
+    description: "KVKK uyumlu veri işleme seçenekleri (yerel hosting, anonimleştirme, DPA). Denetim izleri, rol tabanlı erişim ve şifreleme.",
+    image: "/call2.webp",
+    visual: {
+      type: "security",
+      content: "Güvenlik ve uyumluluk"
     }
   }
 ];
@@ -42,9 +75,12 @@ export default function ComprehensionSection() {
         {/* Left Side - Features List with padding */}
         <div className="flex flex-col justify-center px-6 py-20">
           <div>
+            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
+              ÜRÜN ÖZELLİKLERİ
+            </p>
             <h2 className="mb-12 text-4xl font-bold text-gray-900 md:text-5xl">
-              Yapay zeka ajanları{" "}
-              <span className="block">doğru anlama ile başlar</span>
+              Çağrı merkezi performansınızı{" "}
+              <span className="block">dönüştüren özellikler</span>
             </h2>
 
             <div className="space-y-0 border-t border-gray-200">
@@ -65,7 +101,7 @@ export default function ComprehensionSection() {
                           <h3
                             className={[
                               "text-lg font-semibold transition-colors",
-                              isActive ? "text-purple-600" : "text-gray-900"
+                              isActive ? "text-cyan-600" : "text-gray-900"
                             ].join(" ")}
                           >
                             {feature.title}
@@ -93,40 +129,29 @@ export default function ComprehensionSection() {
         </div>
 
         {/* Right Side - Visual Demo - Full height */}
-        <div className="relative flex min-h-screen flex-col overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 lg:min-h-0">
-              {/* Colorful Overlay Effects - Abstract Art */}
-              <div className="absolute inset-0">
-                {/* Top Blue Section */}
-                <div className="absolute left-0 right-0 top-0 h-64 bg-gradient-to-br from-blue-400/40 via-cyan-300/30 to-transparent backdrop-blur-sm"></div>
-                
-                {/* Pink/Red Bottom Section */}
-                <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-tr from-red-400/40 via-orange-300/30 to-transparent backdrop-blur-sm"></div>
-                
-                {/* Center Purple Accent */}
-                <div className="absolute left-1/4 top-1/3 h-48 w-48 rounded-full bg-purple-400/20 blur-3xl"></div>
-                
-                {/* Pixel/Glitch Effects */}
-                <div className="absolute inset-0 opacity-30" style={{
-                  backgroundImage: `
-                    linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.03) 50%, transparent 100%),
-                    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)
-                  `
-                }}></div>
+        <div className="relative flex min-h-screen flex-col overflow-hidden bg-white lg:min-h-0">
+              {/* Centered Visual - full height and width */}
+              <div className="relative z-10 h-full w-full">
+                {features.map((feature) => {
+                  const isActive = activeFeature === feature.id;
+                  if (!isActive) return null;
+                  return (
+                    <img
+                      key={feature.id}
+                      src={feature.image}
+                      alt={feature.title}
+                      className="h-full w-full object-cover transition-opacity duration-300"
+                    />
+                  );
+                })}
+                {!activeFeature && (
+                  <img
+                    src="/call4.webp"
+                    alt="Comprehension Visual"
+                    className="h-full w-full object-cover"
+                  />
+                )}
               </div>
-
-              {/* Centered Visual - ensures full image visibility without cropping */}
-              <div className="relative z-10 flex flex-1 items-center justify-center p-4">
-                <img
-                  src="/call4.webp"
-                  alt="Comprehension Visual"
-                  className="max-h-full w-auto object-contain"
-                />
-              </div>
-
-          {/* Scanning Line Effect */}
-          <div className="absolute inset-0 animate-pulse">
-            <div className="absolute left-0 right-0 top-1/3 h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent"></div>
-          </div>
         </div>
         </div>
       </div>

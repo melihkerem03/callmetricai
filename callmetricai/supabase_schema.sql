@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS kullanici (
 CREATE TABLE IF NOT EXISTS gorusme (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     kullanici_id UUID REFERENCES kullanici(id) ON DELETE CASCADE,
+    request_id UUID UNIQUE,  -- For polling: unique ID to track processing status
     gorusme_adi VARCHAR(255),
     gorusme_tarihi TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     gorusme_suresi INTEGER, -- in seconds
@@ -34,6 +35,7 @@ CREATE TABLE IF NOT EXISTS gorusme (
     musteri_memnuniyeti VARCHAR(50),
     ai_ozet TEXT,
     ai_onerileri TEXT,
+    call_analysis JSONB,  -- Full OpenAI analysis (caller_analysis, agent_performance, recommendations)
     ses_dosyasi_url TEXT,
     olusturma_tarihi TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     guncelleme_tarihi TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -44,6 +46,7 @@ CREATE INDEX IF NOT EXISTS idx_kullanici_user_id ON kullanici(user_id);
 CREATE INDEX IF NOT EXISTS idx_kullanici_personel_id ON kullanici(personel_id);
 CREATE INDEX IF NOT EXISTS idx_gorusme_kullanici_id ON gorusme(kullanici_id);
 CREATE INDEX IF NOT EXISTS idx_gorusme_tarihi ON gorusme(gorusme_tarihi DESC);
+CREATE INDEX IF NOT EXISTS idx_gorusme_request_id ON gorusme(request_id);  -- For fast polling lookup
 
 -- 5. Enable Row Level Security (RLS)
 ALTER TABLE kullanici ENABLE ROW LEVEL SECURITY;

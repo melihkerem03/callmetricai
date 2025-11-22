@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Modal API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1d2e;
+            color: white;
+        }
+        button {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #4f46e5;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #2d3748;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .error {
+            color: #f87171;
+        }
+        .success {
+            color: #34d399;
+        }
+        input[type="file"] {
+            margin: 20px 0;
+            padding: 10px;
+            background: #2d3748;
+            border: 1px solid #4b5563;
+            color: white;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Modal API Test</h1>
+    <p>Bu sayfa Modal API'nin çalışıp çalışmadığını test eder.</p>
+    
+    <input type="file" id="fileInput" accept="audio/*" />
+    <br />
+    <button onclick="testAPI()">Test Modal API</button>
+    
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            const resultDiv = document.getElementById('result');
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                resultDiv.innerHTML = '<span class="error">❌ Lütfen bir ses dosyası seçin!</span>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '⏳ Testing Modal API...\n';
+            
+            const formData = new FormData();
+            formData.append('audio_file', file);
+            
+            const apiUrl = 'https://melihkerem03--whisperx-diarization-api-fastapi-app.modal.run';
+            
+            try {
+                resultDiv.innerHTML += `📤 Sending request to: ${apiUrl}\n`;
+                resultDiv.innerHTML += `📊 File: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)\n\n`;
+                
+                const startTime = Date.now();
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'cors',
+                });
+                
+                const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+                
+                resultDiv.innerHTML += `✅ Response received in ${duration}s\n`;
+                resultDiv.innerHTML += `📥 Status: ${response.status} ${response.statusText}\n`;
+                resultDiv.innerHTML += `📥 Headers:\n`;
+                
+                for (const [key, value] of response.headers.entries()) {
+                    resultDiv.innerHTML += `   ${key}: ${value}\n`;
+                }
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML += '\n<span class="success">✅ SUCCESS!</span>\n\n';
+                    resultDiv.innerHTML += `Detected Language: ${data.detected_language}\n`;
+                    resultDiv.innerHTML += `Transcript Length: ${data.transcript_with_speakers?.length || 0} chars\n`;
+                    resultDiv.innerHTML += `Segments: ${data.raw_segments?.length || 0}\n`;
+                    if (data.call_analysis) {
+                        resultDiv.innerHTML += `AI Analysis: ✅ Present\n`;
+                    }
+                } else {
+                    const errorText = await response.text();
+                    resultDiv.innerHTML += `\n<span class="error">❌ ERROR</span>\n${errorText}\n`;
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML += `\n<span class="error">❌ FETCH ERROR</span>\n`;
+                resultDiv.innerHTML += `Error Name: ${error.name}\n`;
+                resultDiv.innerHTML += `Error Message: ${error.message}\n`;
+                resultDiv.innerHTML += `Error Stack:\n${error.stack}\n`;
+                
+                // Additional diagnostics
+                resultDiv.innerHTML += `\n🔍 Diagnostics:\n`;
+                resultDiv.innerHTML += `- Browser: ${navigator.userAgent}\n`;
+                resultDiv.innerHTML += `- HTTPS: ${window.location.protocol === 'https:'}\n`;
+                resultDiv.innerHTML += `- Online: ${navigator.onLine}\n`;
+            }
+        }
+    </script>
+</body>
+</html>
+

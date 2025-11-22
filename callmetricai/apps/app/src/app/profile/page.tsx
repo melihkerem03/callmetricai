@@ -1,24 +1,132 @@
 "use client";
 
 import DashboardLayout from "@/components/DashboardLayout";
-import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { personnelService } from "@/lib/database";
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
+  const { user, personnel, signOut } = useAuth();
+  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
   
-  // Demo data
   const [profileData, setProfileData] = useState({
-    name: "Admin User",
-    email: "admin@mail.com",
-    company: "CallMetricAI",
-    address: "İstanbul, Türkiye",
-    integrator: "Acme Entegrasyon A.Ş.",
-    subscription: "Premium",
-    subscriptionDate: "01.01.2024",
-    subscriptionEnd: "01.01.2025",
-    profilePhoto: "/callmetriclogo.png"
+    ad: "",
+    soyad: "",
+    email: "",
+    departman: "",
+    pozisyon: "",
+    personel_id: "",
   });
+
+  useEffect(() => {
+    if (personnel && user) {
+      setProfileData({
+        ad: personnel.ad || "",
+        soyad: personnel.soyad || "",
+        email: user.email || "",
+        departman: personnel.departman || "",
+        pozisyon: personnel.pozisyon || "",
+        personel_id: personnel.personel_id || "",
+      });
+    }
+  }, [personnel, user]);
+
+  const handleSave = async () => {
+    if (!personnel?.id) return;
+    
+    setIsSaving(true);
+    setMessage(null);
+
+    try {
+      const { error } = await personnelService.updatePersonnel(personnel.id, {
+        ad: profileData.ad,
+        soyad: profileData.soyad,
+        pozisyon: profileData.pozisyon,
+      });
+
+      if (error) {
+        setMessage({ type: 'error', text: `Hata: ${error.message}` });
+      } else {
+        setMessage({ type: 'success', text: '✅ Profil başarıyla güncellendi!' });
+        setIsEditing(false);
+        // Reload page to refresh auth context
+        setTimeout(() => window.location.reload(), 1500);
+      }
+    } catch (err: any) {
+      setMessage({ type: 'error', text: `Bir hata oluştu: ${err.message}` });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    router.push('/auth/login');
+  };
+
+  const getDepartmanText = (dep: string) => {
+    const map: Record<string, string> = {
+      'satis': 'Satış',
+      'teknik': 'Teknik Destek',
+      'musteri_hizmetleri': 'Müşteri Hizmetleri'
+    };
+    return map[dep] || dep;
+  };
+
+  // Debug: Show loading state with timeout
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!personnel && user && process.env.NODE_ENV !== 'production') {
+        console.error('⚠️ Personnel data not loading after 5 seconds!');
+        console.log('User ID:', user?.id);
+        console.log('Session:', user);
+      }
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [personnel, user]);
+
+  if (!user) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-gray-400">Oturum yükleniyor...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!personnel) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center bg-yellow-900/30 border border-yellow-700 rounded-xl p-8 max-w-md mx-auto">
+            <svg className="w-16 h-16 text-yellow-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <h3 className="text-xl font-bold text-yellow-400 mb-2">Personnel Verisi Yüklenemedi</h3>
+            <p className="text-gray-300 mb-4">
+              Kullanıcı bilgileriniz veritabanında bulunamadı. 
+              Lütfen yöneticinizle iletişime geçin.
+            </p>
+            <p className="text-xs text-gray-400 mb-4">User ID: {user?.id}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+            >
+              🔄 Yeniden Dene
+            </button>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -28,242 +136,177 @@ export default function ProfilePage() {
         <p className="text-gray-400">Hesap bilgilerinizi görüntüleyin ve düzenleyin</p>
       </div>
 
+      {/* Message */}
+      {message && (
+        <div className={`mb-6 p-4 rounded-lg ${
+          message.type === 'success' ? 'bg-green-900/30 border border-green-700 text-green-300' : 
+          'bg-red-900/30 border border-red-700 text-red-300'
+        }`}>
+          {message.text}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Sol Kolon - Profil Fotoğrafı ve Hızlı Bilgiler */}
+        {/* Sol Kolon - Profil Card */}
         <div className="lg:col-span-1">
-          {/* Profil Fotoğrafı Kartı */}
-          <div className="bg-[#1a1d2e] rounded-2xl p-6 border border-gray-800 mb-6">
+          <div className="bg-[#1a1d2e] rounded-2xl p-6 border border-gray-800">
             <div className="flex flex-col items-center">
-              {/* Profil Fotoğrafı */}
+              {/* Avatar */}
               <div className="relative w-32 h-32 mb-4">
-                <div className="w-full h-full rounded-full bg-gray-800 flex items-center justify-center overflow-hidden border-4 border-purple-600">
-                  <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
+                <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white text-4xl font-bold">
+                  {profileData.ad.charAt(0)}{profileData.soyad.charAt(0)}
                 </div>
-                <button className="absolute bottom-0 right-0 w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center hover:bg-purple-700 transition-colors border-4 border-[#1a1d2e]">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </button>
               </div>
 
-              {/* İsim ve Email */}
-              <h2 className="text-xl font-bold text-white mb-1">{profileData.name}</h2>
-              <p className="text-gray-400 text-sm mb-4">{profileData.email}</p>
+              {/* Name */}
+              <h2 className="text-2xl font-bold text-white mb-1">
+                {profileData.ad} {profileData.soyad}
+              </h2>
+              <p className="text-gray-400 mb-4">{profileData.email}</p>
 
-              {/* Abonelik Badge */}
-              <div className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-500 px-4 py-2 rounded-lg mb-4">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                </svg>
-                <span className="text-white font-semibold">{profileData.subscription} Üyelik</span>
+              {/* Badges */}
+              <div className="flex flex-col gap-2 w-full">
+                <div className="bg-purple-900/30 border border-purple-700 rounded-lg p-3 text-center">
+                  <p className="text-xs text-gray-400 mb-1">Personel ID</p>
+                  <p className="text-lg font-bold text-purple-400">{profileData.personel_id}</p>
+                </div>
+                <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-3 text-center">
+                  <p className="text-xs text-gray-400 mb-1">Departman</p>
+                  <p className="text-sm font-semibold text-blue-400">{getDepartmanText(profileData.departman)}</p>
+                </div>
+                {personnel.yonetici && (
+                  <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-3 text-center">
+                    <p className="text-sm font-semibold text-yellow-400">👑 Yönetici</p>
+                  </div>
+                )}
               </div>
 
-              {/* Düzenle Butonu */}
-              <button 
-                onClick={() => setIsEditing(!isEditing)}
-                className="w-full bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
+              {/* Logout Button */}
+              <button
+                onClick={handleLogout}
+                className="mt-6 w-full bg-red-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                Profili Düzenle
+                Çıkış Yap
               </button>
-            </div>
-          </div>
-
-          {/* İstatistikler Kartı */}
-          <div className="bg-[#1a1d2e] rounded-2xl p-6 border border-gray-800">
-            <h3 className="text-lg font-bold text-white mb-4">Hesap İstatistikleri</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-400 text-sm">Toplam Görüşme</span>
-                <span className="text-white font-semibold">1,247</span>
-              </div>
-              <div className="border-t border-gray-700"></div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-400 text-sm">Bu Ay</span>
-                <span className="text-white font-semibold">342</span>
-              </div>
-              <div className="border-t border-gray-700"></div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-400 text-sm">Başarı Oranı</span>
-                <span className="text-green-500 font-semibold">78%</span>
-              </div>
             </div>
           </div>
         </div>
 
-        {/* Sağ Kolon - Detaylı Bilgiler */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Kişisel Bilgiler */}
-          <div className="bg-[#1a1d2e] rounded-2xl p-6 border border-gray-800">
+        {/* Sağ Kolon - Profil Bilgileri */}
+        <div className="lg:col-span-2">
+          <div className="bg-[#1a1d2e] rounded-2xl p-8 border border-gray-800">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                Kişisel Bilgiler
-              </h3>
+              <h3 className="text-2xl font-bold text-white">Profil Bilgileri</h3>
+              {!isEditing && (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Düzenle
+                </button>
+              )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Kullanıcı Adı */}
+            <div className="space-y-6">
+              {/* Ad */}
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Kullanıcı Adı</label>
-                <input
-                  type="text"
-                  value={profileData.name}
-                  disabled={!isEditing}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  onChange={(e) => setProfileData({...profileData, name: e.target.value})}
-                />
+                <label className="block text-sm font-medium text-gray-400 mb-2">Ad</label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={profileData.ad}
+                    onChange={(e) => setProfileData({...profileData, ad: e.target.value})}
+                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none"
+                  />
+                ) : (
+                  <p className="text-lg text-white">{profileData.ad}</p>
+                )}
               </div>
 
-              {/* E-posta */}
+              {/* Soyad */}
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Soyad</label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={profileData.soyad}
+                    onChange={(e) => setProfileData({...profileData, soyad: e.target.value})}
+                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none"
+                  />
+                ) : (
+                  <p className="text-lg text-white">{profileData.soyad}</p>
+                )}
+              </div>
+
+              {/* Email (readonly) */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">E-posta</label>
-                <input
-                  type="email"
-                  value={profileData.email}
-                  disabled={!isEditing}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-                />
+                <p className="text-lg text-gray-500">{profileData.email}</p>
+                <p className="text-xs text-gray-600 mt-1">E-posta değiştirilemez</p>
               </div>
 
-              {/* Firma */}
+              {/* Pozisyon */}
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Firma</label>
-                <input
-                  type="text"
-                  value={profileData.company}
-                  disabled={!isEditing}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  onChange={(e) => setProfileData({...profileData, company: e.target.value})}
-                />
+                <label className="block text-sm font-medium text-gray-400 mb-2">Pozisyon</label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={profileData.pozisyon}
+                    onChange={(e) => setProfileData({...profileData, pozisyon: e.target.value})}
+                    placeholder="Örn: Kıdemli Çağrı Merkezi Uzmanı"
+                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none"
+                  />
+                ) : (
+                  <p className="text-lg text-white">{profileData.pozisyon || "Belirtilmemiş"}</p>
+                )}
               </div>
 
-              {/* Adres */}
+              {/* Departman (readonly) */}
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Adres</label>
-                <input
-                  type="text"
-                  value={profileData.address}
-                  disabled={!isEditing}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  onChange={(e) => setProfileData({...profileData, address: e.target.value})}
-                />
+                <label className="block text-sm font-medium text-gray-400 mb-2">Departman</label>
+                <p className="text-lg text-gray-500">{getDepartmanText(profileData.departman)}</p>
+                <p className="text-xs text-gray-600 mt-1">Departman yönetici tarafından değiştirilir</p>
               </div>
 
-              {/* Entegratör Firma */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-400 mb-2">Entegratör Firma</label>
-                <input
-                  type="text"
-                  value={profileData.integrator}
-                  disabled={!isEditing}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                  onChange={(e) => setProfileData({...profileData, integrator: e.target.value})}
-                />
-              </div>
-            </div>
-
-            {isEditing && (
-              <div className="flex gap-4 mt-6">
-                <button className="flex-1 bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700 transition-colors font-semibold">
-                  Değişiklikleri Kaydet
-                </button>
-                <button 
-                  onClick={() => setIsEditing(false)}
-                  className="flex-1 bg-gray-800 text-white px-4 py-3 rounded-lg hover:bg-gray-700 transition-colors font-semibold"
-                >
-                  İptal
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Abonelik Bilgileri */}
-          <div className="bg-[#1a1d2e] rounded-2xl p-6 border border-gray-800">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                </svg>
-                Abonelik Bilgileri
-              </h3>
-              <button className="text-purple-500 hover:text-purple-400 text-sm font-semibold">
-                Planı Değiştir
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Abonelik Tipi */}
-              <div className="bg-gray-800 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <svg className="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                  </svg>
-                  <span className="text-gray-400 text-sm">Abonelik Türü</span>
+              {/* Action Buttons */}
+              {isEditing && (
+                <div className="flex gap-4 pt-4">
+                  <button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSaving ? "Kaydediliyor..." : "💾 Kaydet"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsEditing(false);
+                      setMessage(null);
+                      // Reset to original data
+                      if (personnel && user) {
+                        setProfileData({
+                          ad: personnel.ad || "",
+                          soyad: personnel.soyad || "",
+                          email: user.email || "",
+                          departman: personnel.departman || "",
+                          pozisyon: personnel.pozisyon || "",
+                          personel_id: personnel.personel_id || "",
+                        });
+                      }
+                    }}
+                    disabled={isSaving}
+                    className="px-6 py-3 bg-gray-700 text-white rounded-lg font-semibold hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    İptal
+                  </button>
                 </div>
-                <p className="text-white font-semibold text-lg">{profileData.subscription}</p>
-              </div>
-
-              {/* Başlangıç Tarihi */}
-              <div className="bg-gray-800 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span className="text-gray-400 text-sm">Başlangıç</span>
-                </div>
-                <p className="text-white font-semibold text-lg">{profileData.subscriptionDate}</p>
-              </div>
-
-              {/* Bitiş Tarihi */}
-              <div className="bg-gray-800 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <svg className="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="text-gray-400 text-sm">Bitiş</span>
-                </div>
-                <p className="text-white font-semibold text-lg">{profileData.subscriptionEnd}</p>
-              </div>
-            </div>
-
-            {/* Abonelik Özellikleri */}
-            <div className="mt-6 p-4 bg-gray-800 rounded-lg">
-              <h4 className="text-white font-semibold mb-3">Plan Özellikleri</h4>
-              <ul className="space-y-2">
-                <li className="flex items-center gap-2 text-gray-300 text-sm">
-                  <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Sınırsız görüşme kaydı
-                </li>
-                <li className="flex items-center gap-2 text-gray-300 text-sm">
-                  <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Gelişmiş analitik raporlar
-                </li>
-                <li className="flex items-center gap-2 text-gray-300 text-sm">
-                  <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  7/24 teknik destek
-                </li>
-                <li className="flex items-center gap-2 text-gray-300 text-sm">
-                  <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  API entegrasyonu
-                </li>
-              </ul>
+              )}
             </div>
           </div>
         </div>

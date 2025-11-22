@@ -54,3 +54,4 @@ app_fixed.py
 
 # Modal cache
 .modal/
+.vercel

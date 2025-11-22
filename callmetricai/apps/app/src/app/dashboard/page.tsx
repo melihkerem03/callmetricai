@@ -25,38 +25,30 @@ export default function DashboardPage() {
 
   const loadDashboardData = async () => {
     try {
-      console.log('Loading dashboard data for personnel:', personnel);
-      
       if (!personnel?.id) {
-        console.error('No personnel ID found!');
         setLoading(false);
         return;
       }
       
       if (personnel?.yonetici) {
         // Admin dashboard
-        console.log('Loading admin stats...');
         const adminStats = await dashboardService.getAdminStats();
-        console.log('Admin stats:', adminStats);
         setStats(adminStats);
         
-        const { data: allCalls, error: callsError } = await callsService.getAllCalls();
-        console.log('All calls:', allCalls, 'Error:', callsError);
+        const { data: allCalls } = await callsService.getAllCalls();
         setRecentCalls(allCalls?.slice(0, 5) || []);
       } else {
         // Personnel dashboard
-        console.log('Loading personnel stats for:', personnel?.id);
         const personnelStats = await dashboardService.getPersonnelStats(personnel?.id || '');
-        console.log('Personnel stats:', personnelStats);
         setStats({ ...personnelStats, activePersonnel: 0 });
         
-        const { data: personnelCalls, error: callsError } = await callsService.getPersonnelCalls(personnel?.id || '');
-        console.log('Personnel calls:', personnelCalls, 'Error:', callsError);
-        console.log('Total calls:', personnelCalls?.length || 0);
+        const { data: personnelCalls } = await callsService.getPersonnelCalls(personnel?.id || '');
         setRecentCalls(personnelCalls?.slice(0, 5) || []);
       }
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Error loading dashboard data:', error);
+      }
     } finally {
       setLoading(false);
     }

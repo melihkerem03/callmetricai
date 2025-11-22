@@ -41,7 +41,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const getInitialSession = async () => {
       const { data: { session }, error } = await supabase.auth.getSession();
       if (error) {
-        console.error('Error getting session:', error);
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('Error getting session:', error);
+        }
       } else {
         setSession(session);
         setUser(session?.user ?? null);
@@ -58,7 +60,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Listen for auth changes
     const { data: { subscription } } = onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session);
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -79,18 +80,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loadPersonnelData = async (userId: string) => {
     try {
-      console.log('Loading personnel data for user ID:', userId);
       const { data, error } = await personnelService.getCurrentPersonnel(userId);
-      console.log('Personnel data result:', { data, error });
       if (error) {
-        console.error('Error loading personnel data:', error);
-        console.error('Error details:', JSON.stringify(error, null, 2));
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('Error loading personnel data:', error);
+        }
       } else {
-        console.log('Personnel data loaded successfully:', data);
         setPersonnel(data);
       }
     } catch (error) {
-      console.error('Error loading personnel data (catch):', error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Error loading personnel data:', error);
+      }
     }
   };
 
